@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PitchBio 棒球投手分析 App（原型）</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#0b1220;--card:#141c2e;--card2:#0a0f1a;--text:#e5edf8;--muted:#8b9bb4;--line:#26334d;--accent:#38bdf8;
+--g:#22c55e;--y:#eab308;--r:#ef4444;--gbg:#0f2a22;}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#eef3fa;--card:#fff;--card2:#f3f6fb;--text:#14213a;--muted:#5b6b85;--line:#cfd9ea;--accent:#0b7fc2;--gbg:#e3f6ec}}
+:root[data-theme="light"]{--bg:#eef3fa;--card:#fff;--card2:#f3f6fb;--text:#14213a;--muted:#5b6b85;--line:#cfd9ea;--accent:#0b7fc2;--gbg:#e3f6ec}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Microsoft JhengHei","PingFang TC",sans-serif}
+.app{max-width:460px;margin:0 auto;padding:16px 14px 28px}
+h1{font-size:20px;margin:4px 0 2px;color:var(--accent);font-weight:500}h1 b{font-weight:700}
+.sub{margin:0 0 12px;color:var(--muted);font-size:13px}
+.row{display:flex;gap:10px}.row>*{flex:1}
+button,.load{font:inherit;cursor:pointer;border-radius:8px}
+.rec{background:#dc2626;color:#fff;border:2px solid #ef4444;padding:18px 8px;font-weight:700;font-size:16px}
+.imp{background:transparent;color:var(--accent);border:2px solid var(--accent);padding:18px 8px;font-weight:700;font-size:16px}
+.tabs{display:flex;gap:8px;margin:10px 0}
+.tab{flex:1;padding:12px 4px;background:var(--card);color:var(--muted);border:1px solid var(--line);font-size:13px}
+.tab.on{background:#0284c7;color:#fff;border-color:var(--accent);font-weight:700}
+.views{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px;position:relative;touch-action:pan-y;user-select:none}
+.panel.hl{background:var(--card2);border:2px solid var(--accent);cursor:grab}
+.pt{font-size:11px;font-weight:700;margin-bottom:2px}.hl .pt{color:var(--accent)}
+.panel svg{width:100%;height:auto;display:block}
+.hint{text-align:center;font-size:11px;color:var(--muted)}
+.phases{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin:10px 0}
+.phases p{margin:0 0 8px;font-size:13px;color:var(--muted);font-weight:700}
+.pb{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:10px}
+.pb button{padding:12px 0;background:var(--card2);color:var(--muted);border:1px solid var(--line);font-size:13px}
+.pb button.on{background:#0284c7;color:#fff;font-weight:700;border-color:var(--accent)}
+.pb button[data-lv=g]{border-bottom:4px solid var(--g)}.pb button[data-lv=y]{border-bottom:4px solid var(--y)}.pb button[data-lv=r]{border-bottom:4px solid var(--r)}
+.shead{margin:12px 2px 0}.shead h2{margin:0;font-size:16px}.shead p{margin:2px 0 0;font-size:12px;color:var(--muted)}
+.card.nm{border-color:var(--line)}.nm .cm{color:var(--muted);font-weight:400}
+.nav{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:4px;margin:10px 0}
+.nav button{flex:1;padding:10px;background:transparent;border:0;color:var(--muted);font-weight:700;font-size:14px}.nav button.on{background:#0284c7;color:#fff}
+.tabs{overflow-x:auto;scrollbar-width:none}.tab{flex:0 0 auto;min-width:104px}[hidden]{display:none!important}
+.sumc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin:10px 0}.sumc h2{margin:0 0 4px;font-size:16px}.sumc p{margin:2px 0;font-size:13px;color:var(--muted)}
+.call{border:2px solid var(--y);background:var(--card);border-radius:10px;padding:12px;margin:10px 0;font-size:14px;font-weight:700;color:var(--y)}
+.prow{display:flex;align-items:center;gap:8px;width:100%;padding:10px;margin:6px 0;background:var(--card);border:1px solid var(--line);color:var(--text);text-align:left}
+.prow .pn{font-weight:700;min-width:46px}.prow .km{color:var(--muted);font-size:12px;min-width:44px}.dots{display:flex;gap:5px;flex:1}
+.dot{width:16px;height:16px;border-radius:50%;background:var(--line)}.dot.g,.pd.g{background:var(--g)}.dot.y,.pd.y{background:var(--y)}.dot.r,.pd.r{background:var(--r)}
+.ovb{padding:4px 8px;border-radius:6px;font-size:12px;font-weight:700;color:#fff}.ovb.g{background:var(--g)}.ovb.y{background:var(--y);color:#1a1400}.ovb.r{background:var(--r)}
+.sh{font-size:13px;color:var(--muted);margin:14px 2px 4px;font-weight:700}.legend{font-size:11px;color:var(--muted);margin:2px 2px 6px}
+.mrow{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:6px 0}.mt{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:8px}.mt b{font-weight:600}
+.strip{position:relative;height:18px;background:var(--card2);border-radius:9px}.band{position:absolute;top:0;bottom:0;background:rgba(34,197,94,.3);border-radius:9px}
+.pd{position:absolute;top:3px;width:12px;height:12px;border-radius:50%;transform:translateX(-50%);border:1px solid #0006}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.card{border:2px solid var(--g);background:var(--card);border-radius:10px;padding:14px;margin:10px 0}
+.card.y{border-color:var(--y)}.card.r{border-color:var(--r)}
+.ch{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.ch h3{margin:0;font-size:15px;font-weight:600}
+.badge{white-space:nowrap;padding:8px 12px;border-radius:6px;font-weight:700;font-size:13px;color:#fff;background:var(--g)}
+.y .badge{background:var(--y);color:#1a1400}.r .badge{background:var(--r)}
+.val{margin:10px 0 6px;font-size:13px;color:var(--muted)}
+.cm{margin:0;font-size:14px;font-weight:700;color:var(--g)}.y .cm{color:var(--y)}.r .cm{color:#f87171}
+.rx{border:2px solid var(--g);background:var(--gbg);border-radius:10px;padding:14px;margin:10px 0}
+.rx h3{margin:0 0 8px;font-size:15px;color:var(--g)}.rx ul{margin:0;padding-left:18px;font-size:14px;line-height:1.7}
+.tools{display:flex;gap:10px;align-items:center;font-size:12px;color:var(--muted);margin-top:14px}
+.load{padding:8px 12px;border:1px dashed var(--accent);color:var(--accent);white-space:nowrap}
+.foot{font-size:11px;color:var(--muted);line-height:1.5;margin:10px 0 0}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#111c;color:#fff;padding:10px 16px;border-radius:20px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;max-width:88%;text-align:center}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<main class="app">
+  <h1>PitchBio <b>棒球投手分析</b> App</h1>
+  <p class="sub">選手：陳冠宇 (#17) ｜ 視角：三壘側 (3B)　<span style="color:var(--y)">［示範資料］</span></p>
+  <div class="row">
+    <button class="rec" id="rec">● 現場連續錄影</button>
+    <button class="imp" id="imp">+ 匯入相簿影片</button>
+  </div>
+  <nav class="nav" id="nav"><button data-v="single" class="on">單球分析</button><button data-v="over">整場總覽</button></nav>
+  <div id="single">
+  <div class="tabs" id="tabs"></div>
+  <div class="views">
+    <div class="panel"><div class="pt">實拍慢動作對齊 (120fps)</div><svg id="svgL" viewBox="0 0 200 220"></svg></div>
+    <div class="panel hl" id="rotPanel"><div class="pt">Unity 3D 骨架 (無死角)</div><svg id="svgR" viewBox="0 0 200 220"></svg><div class="hint">手勢滑動 360° 旋轉</div></div>
+  </div>
+  <div class="phases">
+    <p>動作階段（點選看每個階段的重點）：</p>
+    <div class="pb" id="pb"></div>
+    <input type="range" id="slider" min="0" max="400" value="100" aria-label="動作進度">
+  </div>
+  <div class="shead" id="shead"></div>
+  <section id="cards"></section>
+  <section class="rx" id="rx"></section>
+  </div>
+  <section id="over" hidden></section>
+  <div class="tools">
+    <label class="load">載入分析報告 JSON<input type="file" id="file" accept=".json,application/json" hidden></label>
+    <span id="note">目前顯示：示範資料</span>
+  </div>
+  <p class="foot">本畫面為介面原型：骨架為示意動畫（非真實 MediaPipe/Unity 輸出），示範數值與門檻僅供版面展示。動作篩檢結果僅供參考，不構成醫療診斷。</p>
+</main>
+<div id="toast" role="status"></div>
+<script>
+const J=['head','neck','pelvis','lknee','lankle','rknee','rankle','relbow','rwrist','lelbow','lwrist'];
+const Z={head:0,neck:0,pelvis:0,lknee:14,lankle:14,rknee:-14,rankle:-14,relbow:-22,rwrist:-22,lelbow:22,lwrist:22};
+const K=[ // 各階段的關鍵瞬間：最高抬腿、前腳踩地、手臂拉到最後、放球、收尾（x,y；面向右側本壘）
+ [[88,52],[88,70],[90,120],[112,112],[100,150],[88,160],[86,200],[70,92],[84,108],[110,88],[120,100]],
+ [[92,54],[90,72],[85,122],[125,160],[140,200],[75,162],[55,200],[65,85],[45,75],[125,85],[145,75]],
+ [[98,55],[95,72],[92,122],[128,160],[142,200],[80,165],[58,200],[80,70],[68,40],[128,78],[140,62]],
+ [[122,64],[112,78],[100,125],[135,160],[142,200],[95,168],[75,185],[135,70],[155,58],[125,100],[118,118]],
+ [[132,80],[122,94],[104,128],[130,165],[140,200],[88,160],[66,178],[110,114],[96,130],[120,116],[112,130]]];
+const B=[['head','neck','t'],['neck','pelvis','t'],['pelvis','lknee','l'],['lknee','lankle','l'],['pelvis','rknee','b'],['rknee','rankle','b'],['neck','relbow','a'],['relbow','rwrist','a'],['neck','lelbow','a'],['lelbow','lwrist','a']];
+const COL={t:'#38bdf8',l:'#22c55e',b:'#64748b',a:'#f59e0b'};
+// 五階段（計畫書採用的分法），m = 該階段結束時的關鍵瞬間
+const ST=[{n:'準備',m:'最高抬腿',d:'從起動到抬腿抬到最高'},{n:'跨步',m:'前腳踩地',d:'抬腿往前踏出，到前腳踩到地面'},
+ {n:'後拉',m:'手臂拉到最後',d:'從踩地到手臂拉到最後面'},{n:'加速',m:'放球瞬間',d:'手臂從最後面揮出去，到放球'},{n:'收尾',m:'收尾完成',d:'放球後身體順勢收尾'}];
+const LV={g:'綠燈 不錯',y:'黃燈 留意',r:'紅燈 要注意'};
+const SUB='（僅供參考）';
+// 指標：s=所屬階段（量測發生的關鍵瞬間）、n=白話名稱、ref=示範用參考範圍、w=是否僅供參考
+const M={
+ elbow_flexion_fp:{s:1,n:'手肘彎曲角度',ref:'92°–116°',c:{g:'踩地時手臂的位置很自然。',y:'踩地時手肘的彎曲和職業投手略有差距，留意手臂和腳步的配合。',r:'踩地時手肘的彎曲和職業投手差很多，建議請教練對照影片確認。'}},
+ rotation_hip_shoulder_separation_fp:{s:1,n:'腰和肩膀的扭轉差',ref:'20°–40°',w:1,c:{g:'腰和肩膀的扭轉搭配得不錯。',y:'腰和肩膀的扭轉略有差距。',r:'腰和肩膀的扭轉差距較大，建議請教練對照影片確認。'}},
+ torso_rotation_fp:{s:1,n:'上半身轉向',ref:'0°–12°',w:1,c:{g:'踩地時上半身的轉向在一般範圍。',y:'踩地時上半身的轉向略有差距。',r:'踩地時上半身的轉向差距較大，建議請教練對照影片確認。'}},
+ elbow_flexion_mer:{s:2,n:'手肘彎曲角度',ref:'88°–97°',c:{g:'手臂拉到最後時，手肘位置很標準。',y:'手臂拉到最後時，手肘位置略有差距，留意拉臂的幅度。',r:'手臂拉到最後時，手肘位置差很多，建議請教練對照影片確認。'}},
+ max_shoulder_external_rotation:{s:2,n:'手臂向後拉的幅度',ref:'164°–176°',w:1,c:{g:'手臂向後拉的幅度在一般範圍。',y:'手臂向後拉的幅度偏大，留意放球時機。',r:'手臂向後拉的幅度明顯偏大，建議請教練對照影片確認。'}},
+ torso_anterior_tilt_br:{s:3,n:'放球時上半身前傾',ref:'25°–46°',c:{g:'放球時身體前傾的角度很穩定。',y:'放球時身體前傾的角度略有差距。',r:'放球時身體前傾的角度差很多，建議請教練對照影片確認。'}},
+ torso_lateral_tilt_br:{s:3,n:'放球時上半身側傾',ref:'12°–24°',w:1,c:{g:'放球時身體沒有明顯歪向一邊。',y:'放球時身體有些歪向一邊。',r:'放球時身體明顯歪向一邊，建議請教練對照影片確認。'}},
+ lead_knee_extension_from_fp_to_br:{s:3,n:'前腳膝蓋撐直量（踩地到放球）',ref:'4°–16°',c:{g:'前腳踩地後有撐住，力量傳得順。',y:'前腳膝蓋撐得稍少，踩地後留意下盤穩定。',r:'前腳膝蓋撐得明顯偏少，建議加強踩地後的前腳支撐。'}}};
+const KEYS=Object.keys(M);
+const V=(...a)=>Object.fromEntries(KEYS.map((k,i)=>[k,a[i]]));
+const DATA={ // 示範資料（非實測）
+ 3:{label:'第 3 球 (148km) 最佳',v:V([102,'g'],[28,'g'],[6,'g'],[93,'g'],[181,'y'],[36,'g'],[24,'y'],[11,'g']),rx:['核心轉體藥球訓練 x 3 組（讓上半身轉得更順）','前腳踩地穩定練習 x 15 球']},
+ 2:{label:'第 2 球 (142km)',v:V([98,'g'],[19,'y'],[8,'g'],[84,'y'],[188,'r'],[33,'g'],[27,'r'],[3,'r']),rx:['單腳穩定蹲 x 3 組（強化前腳支撐）','手臂後拉幅度控制練習']},
+ 1:{label:'第 1 球 (144km)',v:V([105,'g'],[31,'g'],[5,'g'],[91,'g'],[170,'g'],[38,'g'],[19,'g'],[9,'g']),rx:['維持目前的訓練量','前腳踩地穩定練習 x 10 球']},
+ 4:{label:'第 4 球 (146km)',v:V([110,'g'],[34,'g'],[9,'g'],[95,'g'],[175,'g'],[41,'g'],[21,'g'],[13,'g']),rx:['維持目前的訓練量','核心轉體藥球訓練 x 2 組']},
+ 5:{label:'第 5 球 (141km)',v:V([88,'y'],[22,'y'],[2,'y'],[86,'y'],[184,'r'],[30,'g'],[26,'r'],[5,'y']),rx:['單腳穩定蹲 x 3 組（強化前腳支撐）','手臂後拉幅度控制練習']},
+ 6:{label:'第 6 球 (147km)',v:V([103,'g'],[26,'g'],[7,'g'],[92,'g'],[179,'y'],[37,'g'],[23,'y'],[12,'g']),rx:['前腳踩地穩定練習 x 10 球','放球時機節奏練習']}};
+const PIT=[1,2,3,4,5,6],KM={1:144,2:142,3:148,4:146,5:141,6:147};
+KEYS.forEach(k=>{[M[k].lo,M[k].hi]=M[k].ref.match(/-?\d+(\.\d+)?/g).map(Number)});
+const $=id=>document.getElementById(id);
+let t=1,theta=0,cur=3,stage=1,rows=[],rxList=[],loaded=false;
+function toast(m){const e=$('toast');e.textContent=m;e.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>e.classList.remove('on'),2200)}
+function pose(t){const i=Math.min(3,Math.floor(t)),f=t-i,o={};J.forEach((n,k)=>{const a=K[i][k],b=K[i+1][k];o[n]=[a[0]+(b[0]-a[0])*f,a[1]+(b[1]-a[1])*f]});return o}
+function draw(P,th,color){
+  const c=Math.cos(th),s=Math.sin(th),X=n=>100+(P[n][0]-100)*c+Z[n]*s;let h='<line x1="10" y1="200" x2="190" y2="200" stroke="#64748b" stroke-width="1.5"/>';
+  B.forEach(([a,b,k])=>{h+=`<line x1="${X(a)}" y1="${P[a][1]}" x2="${X(b)}" y2="${P[b][1]}" stroke="${color||COL[k]}" stroke-width="5" stroke-linecap="round"/>`});
+  return h+`<ellipse cx="${X('head')}" cy="${P.head[1]-4}" rx="8" ry="10" fill="#cbd5e1"/>`}
+function renderPose(){
+  const P=pose(t),i=Math.round(t);
+  $('svgL').innerHTML=draw(P,0,'#94a3b8')+`<text x="8" y="214" fill="#22c55e" font-size="10">${ST[i].m}</text>`;
+  $('svgR').innerHTML=draw(P,theta);
+  [...$('pb').children].forEach((b,k)=>b.classList.toggle('on',k===i));$('slider').value=Math.round(t*100)}
+function card(x){const d=document.createElement('div');d.className='card '+(x.lv==='g'||x.lv==='nm'?(x.lv==='nm'?'nm':''):x.lv);
+  d.innerHTML='<div class="ch"><h3></h3><span class="badge"></span></div><p class="val"></p><p class="cm"></p>';
+  d.querySelector('h3').textContent=x.t;const b=d.querySelector('.badge');if(x.lv==='nm')b.remove();else b.textContent=LV[x.lv];
+  d.querySelector('.val').textContent=x.v;d.querySelector('.cm').textContent=x.c;return d}
+function renderStage(){
+  const S=ST[stage];$('shead').innerHTML='<h2></h2><p></p>';
+  $('shead').querySelector('h2').textContent=`${stage+1}. ${S.n}｜關鍵瞬間：${S.m}`;$('shead').querySelector('p').textContent=S.d;
+  const items=rows.filter(r=>r.s===stage);
+  $('cards').replaceChildren(...(items.length?items.map(r=>card({t:M[r.k].n+(M[r.k].w?SUB:''),v:`你的數值：${r.val}°　職業參考範圍：${r.ref}`,lv:r.lv,c:M[r.k].c[r.lv]})):
+    [card({t:'這個階段目前沒有量測項目',v:'',lv:'nm',c:'目前系統先分析「前腳踩地、手臂拉到最後、放球」三個關鍵瞬間，這個階段的項目之後再加入。'})]));
+  [...$('pb').children].forEach((b,k)=>{const l=rows.filter(r=>r.s===k).map(r=>r.lv);b.dataset.lv=l.includes('r')?'r':l.includes('y')?'y':l.length?'g':''})}
+function renderRx(){$('rx').innerHTML='<h3>今日訓練建議：</h3><ul></ul>';rxList.forEach(r=>{const li=document.createElement('li');li.textContent=r;$('rx').querySelector('ul').append(li)})}
+function setStage(i){stage=i;t=i;renderPose();renderStage()}
+function show(n){cur=n;loaded=false;const d=DATA[n];rows=KEYS.map(k=>({k,s:M[k].s,val:d.v[k][0],lv:d.v[k][1],ref:M[k].ref}));rxList=d.rx;
+  [...$('tabs').children].forEach(b=>{const on=+b.dataset.n===n;b.classList.toggle('on',on);if(on&&b.scrollIntoView)b.scrollIntoView({inline:'center',block:'nearest'})});$('note').textContent='目前顯示：示範資料';renderStage();renderRx()}
+PIT.forEach(n=>{const b=document.createElement('button');b.className='tab';b.dataset.n=n;b.textContent=DATA[n].label;b.onclick=()=>show(n);$('tabs').append(b)});
+ST.forEach((p,k)=>{const b=document.createElement('button');b.textContent=`${k+1} ${p.n}`;b.onclick=()=>setStage(k);$('pb').append(b)});
+$('slider').oninput=e=>{t=e.target.value/100;renderPose();const i=Math.round(t);if(i!==stage){stage=i;renderStage()}};
+$('rec').onclick=()=>toast('原型：錄影功能需在手機 App 內實作');$('imp').onclick=()=>toast('原型：匯入影片需在手機 App 內實作');
+let dragX=null;const rp=$('rotPanel');
+rp.onpointerdown=e=>{dragX=e.clientX;rp.setPointerCapture(e.pointerId)};
+rp.onpointermove=e=>{if(dragX===null)return;theta+=(e.clientX-dragX)*0.018;dragX=e.clientX;renderPose()};
+rp.onpointerup=rp.onpointercancel=()=>{dragX=null};
+const rng=x=>x.ref_low!=null&&x.ref_high!=null?`${x.ref_low}°–${x.ref_high}°`:x.ref_low!=null?`${x.ref_low}° 以上`:x.ref_high!=null?`${x.ref_high}° 以下`:`職業中位數 ${x.median_reference}°`;
+$('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{switchView('single');const rep=JSON.parse(r.result).report;if(!Array.isArray(rep))throw 0;
+    const R=rep.filter(x=>M[x.metric]).map(x=>({k:x.metric,s:M[x.metric].s,val:x.value,lv:{green:'g',yellow:'y',red:'r'}[x.status]||'y',ref:rng(x)})).sort((a,b)=>KEYS.indexOf(a.k)-KEYS.indexOf(b.k));
+    if(!R.length)throw 0;rows=R;loaded=true;rxList=['尚未串接訓練建議，建議由教練或防護員看過結果後再提供。'];
+    [...$('tabs').children].forEach(b=>b.classList.remove('on'));$('note').textContent=`目前顯示：已載入報告（${R.length} 項）`;
+    renderStage();renderRx();toast('已載入分析報告')}catch(_){toast('檔案格式不符：需為 latest_report.json')}};
+  r.readAsText(f)};
+/*OV-START*/
+const worst=a=>a.includes('r')?'r':a.includes('y')?'y':a.length?'g':'';
+const pitchStage=(n,s)=>worst(KEYS.filter(k=>M[k].s===s).map(k=>DATA[n].v[k][1]));
+const WORD={g:'穩',y:'留意',r:'注意'};
+function renderOverview(){
+  const o=$('over'),N=PIT.length,avg=Math.round(PIT.reduce((a,n)=>a+KM[n],0)/N);
+  const all=PIT.map(n=>worst(KEYS.map(k=>DATA[n].v[k][1]))),ng=all.filter(x=>x==='g').length;
+  const cnt=[1,2,3].map(s=>({s,c:PIT.filter(n=>pitchStage(n,s)==='y'||pitchStage(n,s)==='r').length})).sort((a,b)=>b.c-a.c)[0];
+  let h=`<div class="sumc"><h2>本場總覽</h2><p>共 ${N} 球｜平均球速 ${avg}km｜全部綠燈的有 ${ng} 球</p><p style="color:var(--y)">［示範資料］</p></div>`;
+  h+=cnt.c?`<div class="call">這場最常亮燈的是「${ST[cnt.s].n}」階段：${N} 球中有 ${cnt.c} 球出現黃燈或紅燈。</div>`:`<div class="call" style="color:var(--g);border-color:var(--g)">這場每個階段都是綠燈。</div>`;
+  h+='<div class="sh">逐球一覽（點一球看詳細）</div><div class="legend">圓點由左到右：準備、跨步、後拉、加速、收尾（灰色＝目前沒有量測）</div>';
+  PIT.forEach((n,i)=>{h+=`<button class="prow" data-n="${n}"><span class="pn">第 ${n} 球</span><span class="km">${KM[n]}km</span><span class="dots">`+
+    ST.map((x,s)=>`<i class="dot ${s>=1&&s<=3?pitchStage(n,s):''}" title="${x.n}"></i>`).join('')+`</span><span class="ovb ${all[i]}">${WORD[all[i]]}</span></button>`});
+  h+='<div class="sh">各項指標，這幾球之間穩不穩？</div><div class="legend">綠色區塊＝職業參考範圍，圓點＝每一球的數值</div>';
+  KEYS.forEach(k=>{const m=M[k],vs=PIT.map(n=>DATA[n].v[k][0]),mn=Math.min(...vs),mx=Math.max(...vs),w=m.hi-m.lo,
+    d0=Math.min(m.lo-.4*w,mn-.1*w),d1=Math.max(m.hi+.4*w,mx+.1*w),p=v=>(v-d0)/(d1-d0)*100,r=(mx-mn)/w,
+    wd=r<.5?['很穩','g']:r<1?['還可以','y']:['飄動較大','r'];
+    h+=`<div class="mrow"><div class="mt"><b>${ST[m.s].n}｜${m.n}${m.w?SUB:''}</b><span style="color:var(--${wd[1]});font-weight:700;white-space:nowrap">${wd[0]}</span></div><div class="strip"><div class="band" style="left:${p(m.lo).toFixed(1)}%;width:${(p(m.hi)-p(m.lo)).toFixed(1)}%"></div>`+
+    PIT.map(n=>`<i class="pd ${DATA[n].v[k][1]}" style="left:${p(DATA[n].v[k][0]).toFixed(1)}%" title="第 ${n} 球：${DATA[n].v[k][0]}°"></i>`).join('')+'</div></div>'});
+  o.innerHTML=h}
+/*OV-END*/
+function switchView(v){$('single').hidden=v!=='single';$('over').hidden=v!=='over';[...$('nav').children].forEach(b=>b.classList.toggle('on',b.dataset.v===v));if(v==='over')renderOverview();window.scrollTo({top:0})}
+$('nav').onclick=e=>{const b=e.target.closest('button');if(b)switchView(b.dataset.v)};
+$('over').onclick=e=>{const b=e.target.closest('.prow');if(b){show(+b.dataset.n);switchView('single')}};
+show(3);renderPose();
+</script>
+</body>
+</html>
